@@ -20,7 +20,7 @@ class AdapterTests(unittest.TestCase):
             synthesize("  ")
 
     def test_decodes_wav_response(self):
-        wav = b"RIFF" + b"\\x00\\x00\\x00\\x00" + b"WAVE" + b"test"
+        wav = b"RIFF" + b"\x00\x00\x00\x00" + b"WAVE" + b"test"
         with tempfile.TemporaryDirectory() as folder:
             worker = Path(folder) / "worker"
             data = Path(folder) / "data"
@@ -29,7 +29,7 @@ class AdapterTests(unittest.TestCase):
             response = {"ok": True, "wav_base64": base64.b64encode(wav).decode(), "error": None}
             class Result:
                 returncode = 0
-                stdout = json.dumps(response) + "\\n"
+                stdout = json.dumps(response) + "\n"
                 stderr = ""
             with patch.dict(os.environ, {
                 "QUOQUENDO_WORKER": str(worker),
