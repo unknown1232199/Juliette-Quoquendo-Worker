@@ -27,7 +27,7 @@ jobs:
           mkdir -p dist
           cp worker/target/release/juliette-quoquendo-worker dist/
           cp adapter.py dist/
-          cp README.md dist/
+          chmod 755 dist/juliette-quoquendo-worker
           tar -czf juliette-quoquendo-worker-linux-x86_64.tar.gz -C dist .
       - uses: actions/upload-artifact@v4
         with:
