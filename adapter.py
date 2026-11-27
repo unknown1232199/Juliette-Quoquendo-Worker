@@ -36,7 +36,7 @@ def synthesize(text: str, voice: str = "Jorge") -> bytes:
     try:
         completed = subprocess.run(
             [worker],
-            input=request + "\\n",
+            input=request + "\n",
             text=True,
             capture_output=True,
             timeout=90,
