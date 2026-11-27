@@ -1,0 +1,36 @@
+name: Build Linux worker
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "worker/**"
+      - ".github/workflows/build-linux.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: worker
+      - name: Build worker
+        run: cargo build --manifest-path worker/Cargo.toml --release
+      - name: Package binary
+        run: |
+          mkdir -p dist
+          cp worker/target/release/juliette-quoquendo-worker dist/
+          cp adapter.py dist/
+          cp README.md dist/
+          tar -czf juliette-quoquendo-worker-linux-x86_64.tar.gz -C dist .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: juliette-quoquendo-worker-linux-x86_64
+          path: juliette-quoquendo-worker-linux-x86_64.tar.gz
+          if-no-files-found: error
