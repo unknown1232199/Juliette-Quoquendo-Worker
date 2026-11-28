@@ -9,6 +9,7 @@ on:
       - "rvc_adapter.py"
       - "rvc_stage.py"
       - "rvc_models.json"
+      - "rvc_drive_support.py"
       - ".github/workflows/package-wispbyte-rvc.yml"
 
 permissions:
@@ -21,12 +22,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate installer and RVC files
         run: |
-          python -m py_compile install_rvc.py rvc_adapter.py rvc_stage.py
+          python -m py_compile install_rvc.py rvc_adapter.py rvc_stage.py rvc_drive_support.py
           python -m json.tool rvc_models.json >/dev/null
       - name: Create Wispbyte sync package
         run: |
           mkdir -p dist
-          cp install_rvc.py rvc_adapter.py rvc_stage.py rvc_models.json dist/
+          cp install_rvc.py rvc_adapter.py rvc_stage.py rvc_models.json rvc_drive_support.py dist/
           tar -czf juliette-wispbyte-rvc-sync.tar.gz -C dist .
       - uses: actions/upload-artifact@v4
         with:
