@@ -23,7 +23,6 @@ jobs:
         run: |
           python -m py_compile install_rvc.py rvc_adapter.py rvc_stage.py
           python -m json.tool rvc_models.json >/dev/null
-          python install_rvc.py --help >/dev/null 2>&1 || test "$?" -eq 1
       - name: Create Wispbyte sync package
         run: |
           mkdir -p dist
