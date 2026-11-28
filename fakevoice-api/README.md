@@ -19,7 +19,7 @@ The inference backend must be deployed separately on a persistent Linux host wit
     git clone https://github.com/Yeyito777/teto-tts.git
     cd teto-tts
     ./setup.sh
-    ./tts --serve --port 5000
+    python -c 'import tts; load=tts.load_models; load(); tts.load_models=lambda *a,**k: None; tts.serve(port=5000)'
 
 The setup downloads the GPT-SoVITS engine, pretrained models, Teto checkpoints, and reference audio. Keep this service private or protect it with network-level access control. The upstream API itself does not provide authentication.
 
