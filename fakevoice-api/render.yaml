@@ -10,15 +10,9 @@ services:
         value: kasane-teto-gpt-sovits
       - key: FAKEVOICE_API_KEY
         sync: false
-      - key: GPT_SOVITS_URL
+      - key: TETO_TTS_URL
         sync: false
-      - key: GPT_SOVITS_REF_AUDIO_PATH
-        sync: false
-      - key: GPT_SOVITS_PROMPT_TEXT
-        sync: false
-      - key: GPT_SOVITS_PROMPT_LANG
-        value: ja
-      - key: GPT_SOVITS_TEXT_LANG
+      - key: TETO_TTS_LANGUAGE
         value: auto
-      - key: GPT_SOVITS_TIMEOUT
-        value: "180"
+      - key: TETO_TTS_TIMEOUT
+        value: "240"
