@@ -5,40 +5,44 @@ https://drive.google.com/drive/folders/1zUEGXqS5aK8wVSuHiUsGJiVOqQHGQI7i
 
 Folder ID: `1zUEGXqS5aK8wVSuHiUsGJiVOqQHGQI7i`
 
-This directory defines the RVC model library for Juliette. It is deliberately separate from the Quoquendo/Loquendo worker and from the GPT-SoVITS Teto TTS backend.
+This directory defines a review-only catalog for RVC models. It is separate from the Quoquendo/Loquendo worker and from GPT-SoVITS Teto TTS.
 
 ## Drive layout
 
-Organize files in Drive by voice/model, for example:
+Keep RVC files under `RVC/`, grouped by voice or source. Keep a model's `.pth` and matching `.index` together when available. A matching index is optional for some models. Add a text note with author, source URL, RVC version, base version (v1/v2), and usage restrictions.
 
-```
-Juliette TTS/
-  RVC/
-    Kasane Teto/
-    Hatsune Miku/
-    Other Vocaloids/
-    Anime/
-    Other/
-  GPT-SoVITS/
-```
+Do not put private files in a link-shared folder. Anyone with the link may be able to access it.
 
-For an RVC model, keep the original `.pth` file and its matching `.index` file together when one exists. Keep a text note with the author, source URL, model version, base version (v1/v2), and any usage restrictions. Do not rename files until their pairing is confirmed.
+## Sync and catalog
 
-## Download and scan
-
-Run the helper on the machine that will host RVC inference, not on the Wispbyte bot container:
+Run on the separate machine that will host RVC inference, not in the Wispbyte Discord bot container:
 
 ```sh
 python -m pip install gdown
 python rvc-library/sync_drive.py --output ./voice-library
 ```
 
-The Drive folder must be shared so that anyone with the link can view/download it. The helper downloads the shared folder, scans for `.pth` and `.index` files, computes SHA-256 hashes, and writes `catalog.json` into the output directory.
+To rescan files already downloaded without contacting Drive:
 
-Large folders may exceed Google Drive/gdown limits. If a download fails, use individual direct-download links for the affected model instead. This helper does not upload files to Drive, run RVC inference, or activate a model in Juliette.
+```sh
+python rvc-library/sync_drive.py --scan-only --output ./voice-library
+```
 
-## Safety and activation
+The script scans `.pth` and `.index` files, calculates SHA-256 hashes, pairs files only when their names match unambiguously, and reports unmatched index files. It writes `catalog.json` with schema version 2.
 
-Downloaded models are untrusted binary files. Keep them disabled until their source, architecture, and matching index are checked and an RVC inference backend is available. Never load a model into the Discord bot process itself. The bot should call a separate inference service.
+Google Drive quotas and folder-download limits may interrupt large downloads. In that case, download the affected files manually into the output folder and run `--scan-only`.
 
-The folder URL is public-link based. Anyone with the link may be able to access its contents, so do not put private files in it.
+## Safety and current limitations
+
+- Every catalog entry is written with `enabled: false` and `status: needs_review`.
+- A file extension and checksum do not prove that a model is safe, compatible, correctly paired, or legally usable.
+- The catalog does not execute or load model files.
+- This repository does not yet provide an RVC inference engine or a public `/v1/audio/speech` service.
+- Do not load RVC checkpoints in the Discord bot process. The future bot integration should call a separately hosted inference API.
+- The Google Drive catalog and this Quoquendo worker are separate components; this repository update does not modify Wispbyte or deploy a remote RVC server.
+
+## Tests
+
+```sh
+python -m unittest discover -s rvc-library/tests -v
+```
