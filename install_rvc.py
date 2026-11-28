@@ -89,7 +89,7 @@ def preserve_registered_drive(downloads: dict[str, bytes]) -> None:
         remote_model["enabled"] = False
         remote_model["archive_format"] = "zip"
         downloads["rvc_models.json"] = (
-            json.dumps(remote_catalog, ensure_ascii=False, indent=2) + "\\n"
+            json.dumps(remote_catalog, ensure_ascii=False, indent=2) + "\n"
         ).encode("utf-8")
 
 
@@ -99,7 +99,7 @@ def patch_loquendo(source: str) -> str:
     if support_import not in source:
         if import_line not in source:
             raise RuntimeError("loquendo.py does not contain the expected RVC import.")
-        source = source.replace(import_line, import_line + "\\n" + support_import, 1)
+        source = source.replace(import_line, import_line + "\n" + support_import, 1)
 
     if "async def rvc_drive(" not in source:
         marker = '    @app_commands.command(name="rvc",'
