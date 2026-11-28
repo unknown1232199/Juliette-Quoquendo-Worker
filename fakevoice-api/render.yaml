@@ -3,7 +3,7 @@ services:
     name: juliette-fakevoice
     runtime: docker
     dockerfilePath: ./fakevoice-api/Dockerfile
-    dockerContext: .
+    dockerContext: ./fakevoice-api
     healthCheckPath: /health
     envVars:
       - key: FAKEVOICE_MODEL_ID
