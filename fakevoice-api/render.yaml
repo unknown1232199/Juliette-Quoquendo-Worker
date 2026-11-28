@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: juliette-fakevoice
+    runtime: docker
+    dockerfilePath: ./fakevoice-api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: FAKEVOICE_MODEL_ID
+        value: kasane-teto-gpt-sovits
+      - key: FAKEVOICE_API_KEY
+        sync: false
+      - key: GPT_SOVITS_URL
+        sync: false
+      - key: GPT_SOVITS_REF_AUDIO_PATH
+        sync: false
+      - key: GPT_SOVITS_PROMPT_TEXT
+        sync: false
+      - key: GPT_SOVITS_PROMPT_LANG
+        value: ja
+      - key: GPT_SOVITS_TEXT_LANG
+        value: auto
+      - key: GPT_SOVITS_TIMEOUT
+        value: "180"
