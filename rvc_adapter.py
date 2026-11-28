@@ -1,8 +1,8 @@
 """Optional HTTP adapter for converting generated TTS audio with RVC.
 
-RVC inference is intentionally kept outside Wispbyte. Configure
-JULIETTE_RVC_URL to a trusted conversion service implementing the JSON
-contract documented in docs/rvc-integration.md.
+The RVC model stays on the remote inference service. Juliette sends a
+catalog-controlled Google Drive download URL so the service can fetch and
+cache the selected model on first use. No inference runs on Wispbyte.
 """
 from __future__ import annotations
 
@@ -17,15 +17,18 @@ class RVCError(RuntimeError):
     pass
 
 
-def convert_wav(wav: bytes, model: str, *, endpoint: str | None = None,
-                timeout: float = 90.0) -> bytes:
-    """Convert a WAV byte string using a configured remote RVC service."""
+def convert_wav(wav: bytes, model: str, *, model_url: str | None = None,
+                endpoint: str | None = None, timeout: float = 180.0) -> bytes:
+    """Convert WAV bytes using a remote service and a catalog model URL."""
     if not isinstance(wav, bytes) or len(wav) < 12:
         raise ValueError("wav must contain audio bytes")
     if not wav.startswith(b"RIFF") or wav[8:12] != b"WAVE":
         raise ValueError("input must be a WAV file")
     if not isinstance(model, str) or not model.strip():
         raise ValueError("model must not be empty")
+    if model_url:
+        if not model_url.startswith("https://drive.google.com/"):
+            raise RVCError("model download URL must be a trusted Google Drive HTTPS URL")
 
     url = (endpoint or os.environ.get("JULIETTE_RVC_URL", "")).strip()
     if not url:
@@ -33,11 +36,15 @@ def convert_wav(wav: bytes, model: str, *, endpoint: str | None = None,
     if not url.startswith("https://"):
         raise RVCError("RVC endpoint must use HTTPS")
 
-    payload = json.dumps({
+    payload_data = {
         "model": model,
         "input_format": "wav",
         "audio_base64": base64.b64encode(wav).decode("ascii"),
-    }).encode("utf-8")
+    }
+    if model_url:
+        payload_data["model_download_url"] = model_url
+        payload_data["model_archive_format"] = "zip"
+    payload = json.dumps(payload_data).encode("utf-8")
     request = urllib.request.Request(
         url, data=payload,
         headers={"Content-Type": "application/json", "Accept": "application/json"},
