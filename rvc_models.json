@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "models": [
     {
       "id": "kasane-teto-synthv-rvc-v2",
@@ -9,8 +9,10 @@
       "epochs": 500,
       "source_page": "https://v2.voice-models.com/model/99T",
       "download_page": "https://drive.google.com/file/d/1VIeEiSfFLKXZgumX-9-fdlhcHZ6baCi3/view?usp=drive_link",
+      "download_url": "https://drive.google.com/uc?export=download&id=1VIeEiSfFLKXZgumX-9-fdlhcHZ6baCi3",
+      "archive_format": "zip",
       "enabled": false,
-      "notes": "Model weights must be downloaded and installed separately. Enable only after verifying the file and the remote RVC service."
+      "notes": "Remote inference service must download, validate, extract, and cache this archive before enabling the model."
     }
   ]
 }
