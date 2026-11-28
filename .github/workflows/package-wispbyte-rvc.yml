@@ -2,6 +2,15 @@ name: Package Wispbyte RVC sync
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "install_rvc.py"
+      - "rvc_adapter.py"
+      - "rvc_stage.py"
+      - "rvc_models.json"
+      - "rvc_drive_support.py"
+      - "tests/**"
+      - ".github/workflows/package-wispbyte-rvc.yml"
   push:
     branches: [main]
     paths:
