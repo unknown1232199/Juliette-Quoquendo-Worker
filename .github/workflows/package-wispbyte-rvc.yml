@@ -1,0 +1,36 @@
+name: Package Wispbyte RVC sync
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "install_rvc.py"
+      - "rvc_adapter.py"
+      - "rvc_stage.py"
+      - "rvc_models.json"
+      - ".github/workflows/package-wispbyte-rvc.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate installer and RVC files
+        run: |
+          python -m py_compile install_rvc.py rvc_adapter.py rvc_stage.py
+          python -m json.tool rvc_models.json >/dev/null
+          python install_rvc.py --help >/dev/null 2>&1 || test "$?" -eq 1
+      - name: Create Wispbyte sync package
+        run: |
+          mkdir -p dist
+          cp install_rvc.py rvc_adapter.py rvc_stage.py rvc_models.json dist/
+          tar -czf juliette-wispbyte-rvc-sync.tar.gz -C dist .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: juliette-wispbyte-rvc-sync
+          path: juliette-wispbyte-rvc-sync.tar.gz
+          if-no-files-found: error
