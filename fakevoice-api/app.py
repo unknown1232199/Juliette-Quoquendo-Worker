@@ -44,6 +44,7 @@ async def health() -> dict[str, Any]:
 @app.get("/v1/models")
 async def models(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     check_auth(authorization)
+    ready = bool(UPSTREAM and REF_AUDIO and PROMPT_TEXT)
     return {
         "object": "list",
         "data": [
@@ -52,7 +53,7 @@ async def models(authorization: str | None = Header(default=None)) -> dict[str, 
                 "object": "model",
                 "owned_by": "juliette-fakevoice",
             }
-        ],
+        ] if ready else [],
     }
 
 
