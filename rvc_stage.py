@@ -1,7 +1,7 @@
 """Async post-processing stage for generated TTS audio.
 
-This module is intended to be imported by Juliette's Discord Cog. It never
-captures microphone audio and never performs RVC inference locally.
+RVC inference and model downloads stay outside Wispbyte. This stage only
+sends generated WAV audio and a catalog-controlled model URL to the service.
 """
 from __future__ import annotations
 
@@ -25,8 +25,7 @@ def load_catalog() -> dict:
 
 
 def available_models() -> list[dict]:
-    catalog = load_catalog()
-    models = catalog.get("models", [])
+    models = load_catalog().get("models", [])
     if not isinstance(models, list):
         return []
     return [
@@ -37,8 +36,13 @@ def available_models() -> list[dict]:
     ]
 
 
+def get_model(model_id: str) -> dict | None:
+    return next((item for item in available_models()
+                 if item["id"] == model_id and item.get("enabled") is True), None)
+
+
 def model_exists(model_id: str) -> bool:
-    return any(item["id"] == model_id for item in available_models())
+    return get_model(model_id) is not None
 
 
 def service_configured() -> bool:
@@ -46,28 +50,29 @@ def service_configured() -> bool:
 
 
 async def process_tts_audio(audio: bytes, config: dict) -> bytes:
-    """Apply RVC only when enabled and a model is explicitly selected.
-
-    With RVC disabled or no model selected, the original bytes are returned.
-    On conversion errors, fallback is controlled by config['rvc_fallback'].
-    """
-    if not isinstance(config, dict):
-        return audio
-    if not config.get("rvc_enabled", False):
+    """Apply RVC only when enabled and an enabled model is selected."""
+    if not isinstance(config, dict) or not config.get("rvc_enabled", False):
         return audio
 
     model_id = str(config.get("rvc_model", "")).strip()
     if not model_id:
         return audio
-    if not model_exists(model_id):
-        raise RVCError(f"RVC model is not registered: {model_id}")
+    model = get_model(model_id)
+    if model is None:
+        raise RVCError(f"RVC model is missing or disabled: {model_id}")
     if not audio.startswith(b"RIFF") or audio[8:12] != b"WAVE":
+        if config.get("rvc_fallback", True):
+            return audio
         raise RVCError("RVC only accepts WAV audio from the TTS provider")
     if len(audio) > MAX_AUDIO:
+        if config.get("rvc_fallback", True):
+            return audio
         raise RVCError("TTS WAV exceeds the 12 MB RVC limit")
 
     try:
-        converted = await asyncio.to_thread(convert_wav, audio, model_id)
+        converted = await asyncio.to_thread(
+            convert_wav, audio, model_id, model_url=model.get("download_url")
+        )
         if len(converted) > MAX_AUDIO:
             raise RVCError("Converted WAV exceeds the 12 MB limit")
         return converted
