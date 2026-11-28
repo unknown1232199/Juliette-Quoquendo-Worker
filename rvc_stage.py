@@ -1,7 +1,8 @@
 """Async post-processing stage for generated TTS audio.
 
-RVC inference and model downloads stay outside Wispbyte. This stage only
-sends generated WAV audio and a catalog-controlled model URL to the service.
+RVC inference runs in Juliette-RVC-Engine. This stage only forwards the WAV
+created by the existing TTS provider and a model ID enabled in the local
+catalog. The remote engine independently requires the model to be active.
 """
 from __future__ import annotations
 
@@ -46,7 +47,10 @@ def model_exists(model_id: str) -> bool:
 
 
 def service_configured() -> bool:
-    return os.getenv("JULIETTE_RVC_URL", "").strip().startswith("https://")
+    return bool(
+        os.getenv("JULIETTE_RVC_URL", "").strip().startswith("https://")
+        and os.getenv("JULIETTE_RVC_API_KEY", "").strip()
+    )
 
 
 async def process_tts_audio(audio: bytes, config: dict) -> bytes:
@@ -57,8 +61,7 @@ async def process_tts_audio(audio: bytes, config: dict) -> bytes:
     model_id = str(config.get("rvc_model", "")).strip()
     if not model_id:
         return audio
-    model = get_model(model_id)
-    if model is None:
+    if get_model(model_id) is None:
         raise RVCError(f"RVC model is missing or disabled: {model_id}")
     if not audio.startswith(b"RIFF") or audio[8:12] != b"WAVE":
         if config.get("rvc_fallback", True):
@@ -70,9 +73,7 @@ async def process_tts_audio(audio: bytes, config: dict) -> bytes:
         raise RVCError("TTS WAV exceeds the 12 MB RVC limit")
 
     try:
-        converted = await asyncio.to_thread(
-            convert_wav, audio, model_id, model_url=model.get("download_url")
-        )
+        converted = await asyncio.to_thread(convert_wav, audio, model_id)
         if len(converted) > MAX_AUDIO:
             raise RVCError("Converted WAV exceeds the 12 MB limit")
         return converted
